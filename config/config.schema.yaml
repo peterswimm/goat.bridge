@@ -1,0 +1,34 @@
+type: object
+required: [homeserver, goat, rooms]
+properties:
+  homeserver:
+    type: object
+    required: [url, domain]
+    properties:
+      url: { type: string }
+      domain: { type: string }
+  goat:
+    type: object
+    required: [baseUrl, username, password]
+    properties:
+      baseUrl: { type: string }
+      username: { type: string }
+      password: { type: string }
+      headless: { type: boolean }
+      storageStatePath: { type: string }
+  rooms:
+    type: object
+    properties:
+      defaultMatrixRoom: { type: string }
+      roomMap:
+        type: array
+        items:
+          type: object
+          required: [matrixRoomId, goatChannel]
+          properties:
+            matrixRoomId: { type: string }
+            goatChannel: { type: string }
+  logging:
+    type: object
+    properties:
+      level: { type: string, enum: [debug, info, warn, error] }
