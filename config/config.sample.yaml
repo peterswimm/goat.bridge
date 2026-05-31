@@ -1,0 +1,19 @@
+homeserver:
+  url: http://localhost:8008
+  domain: example.org
+
+goat:
+  baseUrl: https://goat.computer
+  username: your-goat-username
+  password: your-goat-password
+  headless: true
+  storageStatePath: ./data/goat-state.json
+
+rooms:
+  defaultMatrixRoom: "!yourRoomId:example.org"
+  roomMap:
+    - matrixRoomId: "!abc123:example.org"
+      goatChannel: "general"
+
+logging:
+  level: info

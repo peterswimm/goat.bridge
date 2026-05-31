@@ -1,0 +1,30 @@
+{
+  "name": "goat-bridge",
+  "version": "0.1.0",
+  "description": "Bidirectional Matrix bridge for goat.computer",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js -c config/config.yaml -f config/registration.yaml -p 9000",
+    "dev": "ts-node src/index.ts -c config/config.yaml -f config/registration.yaml -p 9000",
+    "gen-registration": "ts-node src/index.ts -r -u 'http://localhost:9000' -c config/config.yaml -f config/registration.yaml",
+    "lint": "eslint 'src/**/*.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "matrix-appservice-bridge": "^10.3.1",
+    "playwright": "^1.49.0",
+    "js-yaml": "^4.1.0",
+    "winston": "^3.15.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.2",
+    "eslint": "^9.16.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0"
+  }
+}
