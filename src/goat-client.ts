@@ -2,12 +2,9 @@ import { EventEmitter } from "events";
 import { Browser, BrowserContext, Page, chromium } from "playwright";
 import * as fs from "fs";
 import { logger } from "./logger";
+import { GoatClientLike, GoatMessage } from "./goat-client-interface";
 
-export interface GoatMessage {
-  sender: string;
-  body: string;
-  timestamp?: number;
-}
+export type { GoatMessage } from "./goat-client-interface";
 
 export interface GoatClientConfig {
   baseUrl: string;
@@ -26,7 +23,7 @@ export interface GoatClientConfig {
  * event) is what bridge.ts depends on; keep it stable while changing the
  * scraping internals.
  */
-export class GoatClient extends EventEmitter {
+export class GoatClient extends EventEmitter implements GoatClientLike {
   private browser?: Browser;
   private context?: BrowserContext;
   private page?: Page;

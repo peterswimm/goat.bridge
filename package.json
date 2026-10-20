@@ -9,7 +9,9 @@
     "dev": "ts-node src/index.ts -c config/config.yaml -f config/registration.yaml -p 9000",
     "gen-registration": "ts-node src/index.ts -r -u 'http://localhost:9000' -c config/config.yaml -f config/registration.yaml",
     "lint": "eslint 'src/**/*.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -25,6 +27,7 @@
     "ts-node": "^10.9.2",
     "eslint": "^9.16.0",
     "@typescript-eslint/parser": "^8.18.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.0"
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "vitest": "^2.1.8"
   }
 }

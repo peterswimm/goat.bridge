@@ -1,43 +1,45 @@
 import { Bridge } from "matrix-appservice-bridge";
 import { BridgeConfig } from "./config";
-import { GoatClient, GoatMessage } from "./goat-client";
+import { GoatClient } from "./goat-client";
+import { GoatClientLike, GoatMessage } from "./goat-client-interface";
+import { decideMatrixForward, findChannelMapping, ghostMxid } from "./routing";
 import { logger } from "./logger";
 
-export async function runBridge(port: number, config: BridgeConfig): Promise<void> {
-  const goat = new GoatClient(config.goat);
+export interface RunBridgeDeps {
+  goatFactory?: (config: BridgeConfig) => GoatClientLike;
+}
+
+export async function runBridge(
+  port: number,
+  config: BridgeConfig,
+  deps: RunBridgeDeps = {},
+): Promise<void> {
+  const goat =
+    deps.goatFactory?.(config) ?? (new GoatClient(config.goat) as GoatClientLike);
 
   const bridge = new Bridge({
     homeserverUrl: config.homeserver.url,
     domain: config.homeserver.domain,
     registration: "config/registration.yaml",
     controller: {
-      onUserQuery(queriedUser) {
+      onUserQuery() {
         return {};
       },
       async onEvent(request) {
-        const event = request.getData();
-        if (event.type !== "m.room.message" || !event.content) return;
-        if (event.sender?.startsWith("@goat_")) return;
-
-        const mapping = config.rooms.roomMap.find(
-          (m) => m.matrixRoomId === event.room_id,
-        );
-        if (!mapping) {
-          logger.debug("No mapping for room", { room: event.room_id });
+        const decision = decideMatrixForward(request.getData(), config);
+        if (!decision.forward) {
+          logger.debug("Not forwarding Matrix event", { reason: decision.reason });
           return;
         }
-
-        const body = (event.content as { body?: string }).body ?? "";
         logger.info("Matrix → goat", {
-          room: event.room_id,
-          channel: mapping.goatChannel,
-          sender: event.sender,
+          room: decision.mapping!.matrixRoomId,
+          channel: decision.mapping!.goatChannel,
+          sender: decision.sender,
         });
-
         try {
-          await goat.sendMessage(mapping.goatChannel, {
-            sender: event.sender ?? "unknown",
-            body,
+          await goat.sendMessage(decision.mapping!.goatChannel, {
+            sender: decision.sender!,
+            body: decision.body!,
           });
         } catch (err) {
           logger.error("Failed forwarding Matrix → goat", { err });
@@ -52,14 +54,12 @@ export async function runBridge(port: number, config: BridgeConfig): Promise<voi
 
   await goat.start();
   goat.on("message", async (channel: string, msg: GoatMessage) => {
-    const mapping = config.rooms.roomMap.find((m) => m.goatChannel === channel);
+    const mapping = findChannelMapping(config, channel);
     if (!mapping) {
       logger.debug("No Matrix mapping for goat channel", { channel });
       return;
     }
-
-    const ghostMxid = `@goat_${sanitize(msg.sender)}:${config.homeserver.domain}`;
-    const intent = bridge.getIntent(ghostMxid);
+    const intent = bridge.getIntent(ghostMxid(msg.sender, config.homeserver.domain));
     await intent.setDisplayName(msg.sender);
     await intent.join(mapping.matrixRoomId);
     await intent.sendText(mapping.matrixRoomId, msg.body);
@@ -72,8 +72,4 @@ export async function runBridge(port: number, config: BridgeConfig): Promise<voi
   };
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
-}
-
-function sanitize(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9_-]/g, "_");
 }

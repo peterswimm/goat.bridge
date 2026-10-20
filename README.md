@@ -33,6 +33,28 @@ npm run gen-registration       # writes config/registration.yaml
 npm run build && npm start
 ```
 
+## Testing
+
+Three layers, cheapest first:
+
+**1. Unit + routing (free, offline):**
+
+```bash
+npm install
+npm run typecheck
+npm test
+```
+
+Covers: config parsing, ghost mxid formation, Matrix→goat forwarding decisions (including ghost-echo suppression and unmapped rooms), and the `MockGoatClient` used to exercise the full event path without a browser or Matrix server. See `tests/`.
+
+**2. Matrix side against a local homeserver (not yet scripted):**
+
+Spin up Synapse via docker-compose, generate the appservice registration with `npm run gen-registration`, point `homeserver.registration_files` at it, start the bridge, and send a message in a mapped room — it should land in `MockGoatClient.sent` (swap in the mock via a `goatFactory` override in a dev entrypoint).
+
+**3. goat.computer side (requires real-site inspection):**
+
+Run Playwright headed (`headless: false` in config) with `PWDEBUG=1 npm run dev` to open the Inspector. In the same session, add `page.on('websocket', ws => console.log('ws', ws.url()))` and `page.on('request', r => console.log(r.method(), r.url()))` to see whether goat.computer uses a hidden JSON/WS API — much more reliable than DOM scraping. Replace the `TODO` selectors in `src/goat-client.ts` with what you find.
+
 ## What's stubbed and needs your input
 
 `src/goat-client.ts` contains `TODO` markers where goat.computer-specific DOM details are required:
