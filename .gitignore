@@ -149,3 +149,5 @@ config/registration.yaml
 data/
 playwright-report/
 .playwright/
+docker/synapse-data/
+docker/element-config.local.json

@@ -1,0 +1,30 @@
+services:
+  synapse:
+    image: matrixdotorg/synapse:v1.119.0
+    container_name: goat-bridge-synapse
+    restart: unless-stopped
+    environment:
+      SYNAPSE_SERVER_NAME: localhost
+      SYNAPSE_REPORT_STATS: "no"
+    volumes:
+      - ./synapse-data:/data
+      - ../config/registration.yaml:/data/appservice-registration.yaml:ro
+    ports:
+      - "8008:8008"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  element:
+    image: vectorim/element-web:v1.11.86
+    container_name: goat-bridge-element
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./element-config.json:/app/config.json:ro
+    depends_on:
+      synapse:
+        condition: service_healthy

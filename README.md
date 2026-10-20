@@ -47,9 +47,9 @@ npm test
 
 Covers: config parsing, ghost mxid formation, Matrix→goat forwarding decisions (including ghost-echo suppression and unmapped rooms), and the `MockGoatClient` used to exercise the full event path without a browser or Matrix server. See `tests/`.
 
-**2. Matrix side against a local homeserver (not yet scripted):**
+**2. Matrix side against a local homeserver (scripted):**
 
-Spin up Synapse via docker-compose, generate the appservice registration with `npm run gen-registration`, point `homeserver.registration_files` at it, start the bridge, and send a message in a mapped room — it should land in `MockGoatClient.sent` (swap in the mock via a `goatFactory` override in a dev entrypoint).
+See `docker/README.md` for the full flow. In short: `docker compose -f docker/docker-compose.yml up -d` boots Synapse + Element on `localhost:8008`/`:8080`, and `npm run dev:mock` runs the bridge with `MockGoatClient` so every Matrix message you send in a mapped room prints as a `matrix → goat` log line instead of going anywhere. This proves the Matrix half end-to-end without ever touching goat.computer.
 
 **3. goat.computer side (requires real-site inspection):**
 
