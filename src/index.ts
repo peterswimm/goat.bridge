@@ -16,8 +16,14 @@ new Cli({
   bridgeConfig: {
     schema: "config/config.schema.yaml",
     affectsRegistration: true,
+    defaults: {},
   },
   run(port) {
+    if (port === null) {
+      // eslint-disable-next-line no-console
+      console.error("Port is required (pass -p <port>)");
+      process.exit(1);
+    }
     const config = loadConfig("config/config.yaml");
     runBridge(port, config).catch((err) => {
       // eslint-disable-next-line no-console
